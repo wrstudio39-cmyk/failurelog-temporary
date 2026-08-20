@@ -1,0 +1,311 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   WALEED Design Bible — Chapter 4, Part I, Section 4
+   Design Tokens & Theme Architecture (Light + Dark)
+   Every visual property originates from a token below. Change
+   the token, every component updates. Dark mode is not an
+   inverted light theme — each surface is tuned independently.
+   ============================================================ */
+:root {
+  --font-inter: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-jbmono: "JetBrains Mono", monospace;
+
+  /* Color tokens */
+  --color-primary: #5B5FEF;
+  --color-secondary: #38BDF8;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  /* Surface hierarchy — Level 0 (bg) → Level 3 (dialogs) */
+  --surface-0: #F8FAFC; /* Gray 50 — application background */
+  --surface-1: #FFFFFF; /* primary content — cards, forms */
+  --surface-2: #F1F5F9; /* navigation — sidebars, panels */
+  --surface-3: #FFFFFF; /* dialogs, dropdowns, floating menus */
+
+  --color-border: #E2E8F0;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-tertiary: #94A3B8;
+
+  /* RGB triplets so Tailwind utilities (bg-paper/40, border-hairline, etc.)
+     stay theme-aware — see tailwind.config.ts */
+  --surface-0-rgb: 248 250 252;
+  --surface-1-rgb: 255 255 255;
+  --surface-2-rgb: 241 245 249;
+  --border-rgb: 226 232 240;
+  --text-primary-rgb: 15 23 42;
+  --text-secondary-rgb: 100 116 139;
+  --text-tertiary-rgb: 148 163 184;
+
+  /* Motion — Animation Durations table, Section 4 */
+  --duration-instant: 100ms;
+  --duration-fast: 175ms;
+  --duration-standard: 275ms;
+  --duration-slow: 450ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layer (z-index) tokens — Section 4: "No component should define
+     arbitrary z-index values." Sticky nav sits above content; dropdowns
+     above nav; modals above dropdowns; toast/tooltip float above modals
+     since they must stay readable even while a dialog is open. */
+  --z-base: 0;
+  --z-dropdown: 20;
+  --z-sticky: 50;
+  --z-modal: 60;
+  --z-overlay: 65;
+  --z-toast: 80;
+  --z-tooltip: 90;
+}
+
+.dark {
+  /* Dark Theme — charcoal surfaces, reduced eye strain, rich contrast */
+  --surface-0: #0B0F17;
+  --surface-1: #121826;
+  --surface-2: #1A2233;
+  --surface-3: #1A2233;
+
+  --color-border: #263043;
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-text-tertiary: #64748B;
+
+  --surface-0-rgb: 11 15 23;
+  --surface-1-rgb: 18 24 38;
+  --surface-2-rgb: 26 34 51;
+  --border-rgb: 38 48 67;
+  --text-primary-rgb: 241 245 249;
+  --text-secondary-rgb: 148 163 184;
+  --text-tertiary-rgb: 100 116 139;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; background: var(--surface-0); }
+  body {
+    @apply min-h-screen antialiased;
+    background: var(--surface-0);
+    color: var(--color-text-primary);
+    font-family: var(--font-inter);
+  }
+  ::selection { background: var(--color-primary); color: #fff; }
+  :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 4px; }
+  button, input, textarea, select { font: inherit; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  }
+}
+
+@layer components {
+  /* ---------- Navigation ---------- */
+  .site-header {
+    @apply sticky top-0 border-b backdrop-blur-md;
+    z-index: var(--z-sticky);
+    background: color-mix(in srgb, var(--surface-0) 85%, transparent);
+    border-color: var(--color-border);
+  }
+  .brand { @apply flex items-center gap-2.5; }
+  .nav-link {
+    @apply text-sm font-medium transition-colors;
+    color: var(--color-text-secondary);
+    transition-duration: var(--duration-fast);
+  }
+  .nav-link:hover { color: var(--color-primary); }
+  .nav-search {
+    @apply flex h-9 w-9 items-center justify-center rounded-md border transition-colors;
+    border-color: var(--color-border); color: var(--color-text-secondary);
+    transition-duration: var(--duration-fast);
+  }
+  .nav-search:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+  .micro-kicker, .field-label, .label {
+    font-family: var(--font-jbmono); text-transform: uppercase; letter-spacing: .08em;
+  }
+  .micro-kicker { @apply text-[11px] leading-none font-medium; color: var(--color-text-secondary); }
+  .field-label { @apply text-xs font-medium; color: var(--color-text-secondary); }
+  .label { @apply mb-2 block text-xs font-medium; color: var(--color-text-secondary); }
+
+  /* ---------- Buttons — Part II, Section 2 ----------
+     Medium = 40px height, 12px radius, Inter 600, sentence case.
+     Primary = filled brand color; Secondary = neutral + border;
+     Ghost = no background until hover. Hover 150ms, press 100ms. */
+  .btn-primary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md px-5 text-sm font-semibold text-white shadow-card transition-all;
+    background: var(--color-primary);
+    transition-duration: var(--duration-fast);
+  }
+  .btn-primary:hover:not(:disabled) { background: #4A4EDB; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(91,95,239,.28); }
+  .btn-primary:active:not(:disabled) { transform: translateY(0); transition-duration: var(--duration-instant); }
+  .btn-primary:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+
+  .btn-secondary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md border px-5 text-sm font-semibold transition-all;
+    border-color: var(--color-border); color: var(--color-text-primary); background: var(--surface-1);
+    transition-duration: var(--duration-fast);
+  }
+  .btn-secondary:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); transform: translateY(-1px); }
+  .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+
+  .btn-ghost {
+    @apply inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors;
+    color: var(--color-text-secondary);
+    transition-duration: var(--duration-fast);
+  }
+  .btn-ghost:hover:not(:disabled) { color: var(--color-primary); background: var(--surface-2); }
+  .btn-ghost:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* Buttons inside the (always-purple) buy panel keep their own hover
+     recipe — this just extends it with the same disabled treatment. */
+  .buy-panel .btn-primary:disabled { opacity: .6; }
+
+  /* ---------- Hero ---------- */
+  .hero-grid {
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--color-text-primary) 5%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-text-primary) 5%, transparent) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .hero-rule { position: relative; }
+  .hero-rule::before { content:""; position:absolute; left:0; top:0; width:64px; height:4px; border-radius:2px; background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); }
+  .display-xl { @apply font-display font-bold tracking-[-.03em]; font-size: clamp(2.75rem, 6.5vw, 4.5rem); line-height: 1.08; color: var(--color-text-primary); }
+  .display-lg { @apply font-display font-bold tracking-[-.025em]; font-size: clamp(2.25rem, 4.5vw, 3rem); line-height: 1.12; color: var(--color-text-primary); }
+  .lede { @apply text-body-lg leading-8; color: var(--color-text-secondary); }
+  .signal-word {
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  .hero-case { @apply rounded-lg border shadow-dialog; border-color: var(--color-border); background: var(--surface-1); }
+  .hero-case-top { @apply flex items-center justify-between border-b px-5 py-3.5; border-color: var(--color-border); }
+
+  /* ---------- Status stamps (semantic color, not decoration) ---------- */
+  .case-stamp {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-[.06em] select-none;
+  }
+  .case-stamp--abandoned { border-color: var(--color-error); color: var(--color-error); background: color-mix(in srgb, var(--color-error) 10%, transparent); }
+  .case-stamp--verified  { border-color: var(--color-success, #10B981); color: #10B981; background: color-mix(in srgb, #10B981 10%, transparent); }
+  .case-stamp--pending   { border-color: var(--color-warning); color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 12%, transparent); }
+  .case-stamp--sold      { border-color: var(--color-text-tertiary); color: var(--color-text-secondary); background: var(--surface-2); }
+
+  /* ---------- Premium badge program ---------- */
+  .premium-badge {
+    @apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[.08em] select-none;
+    border-color: #C08A2E; color: #8A5E15;
+    background: linear-gradient(135deg, #FDEACB, #FBDFA8);
+  }
+  .dark .premium-badge { color: #F4D488; background: linear-gradient(135deg, rgba(245,158,11,.16), rgba(245,158,11,.08)); border-color: rgba(245,158,11,.45); }
+  .premium-badge--md { @apply px-2.5 py-1 text-[10px]; }
+  .premium-banner {
+    @apply flex flex-col gap-4 rounded-lg border p-5 sm:flex-row sm:items-center sm:justify-between;
+    border-color: #C08A2E; background: linear-gradient(120deg, color-mix(in srgb, #F59E0B 10%, transparent), color-mix(in srgb, #F59E0B 3%, transparent));
+  }
+  .premium-banner-icon {
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-full border;
+    border-color: #C08A2E; color: #8A5E15; background: rgba(245,158,11,.14);
+  }
+  .dark .premium-banner-icon { color: #F4D488; }
+
+  /* ---------- Cards ---------- */
+  .doc-card { @apply rounded-md border transition-colors; border-color: var(--color-border); background: var(--surface-1); }
+  .doc-card:hover { border-color: var(--color-primary); }
+
+  .project-card {
+    @apply block overflow-hidden rounded-lg border shadow-card transition-all;
+    border-color: var(--color-border); background: var(--surface-1);
+    transition-duration: var(--duration-standard); transition-timing-function: var(--ease-standard);
+  }
+  .project-card:hover { transform: translateY(-3px); border-color: var(--color-primary); box-shadow: var(--tw-shadow, 0 8px 20px rgba(91,95,239,.14)); }
+  .project-card-top { @apply flex items-center justify-between gap-3 border-b px-5 py-3.5; border-color: var(--color-border); }
+  .dot-sep { width:3px; height:3px; border-radius:999px; background: var(--color-text-tertiary); }
+  .project-cover { @apply relative h-48 overflow-hidden border-b; border-color: var(--color-border); background: var(--surface-2); }
+  .project-cover--empty { @apply flex items-center justify-center; background: var(--surface-2); }
+  .cover-overlay { @apply absolute inset-0; background: linear-gradient(180deg, transparent 40%, rgba(15,23,42,.55)); }
+  .cover-index { @apply absolute left-4 top-4 z-10 font-mono text-[10px] uppercase tracking-[.1em] text-white/75; }
+  .cover-word { @apply font-display text-6xl font-bold tracking-[-.04em]; color: color-mix(in srgb, var(--color-primary) 22%, transparent); }
+  .case-grid { position:absolute; inset:0; opacity:.15; background-image:linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px); background-size:24px 24px; }
+  .tech-chip { @apply inline-flex rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-[.04em]; border-color: var(--color-border); color: var(--color-text-secondary); background: var(--surface-2); }
+  .tech-chip--button { @apply cursor-pointer transition-colors; transition-duration: var(--duration-fast); }
+  .tech-chip--button:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  .tech-chip--active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+  .metric-mini { @apply flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[.02em]; color: var(--color-text-secondary); }
+  .card-arrow { @apply flex h-9 w-9 items-center justify-center rounded-full border transition-all; border-color: var(--color-border); color: var(--color-text-primary); transition-duration: var(--duration-fast); }
+  .project-card:hover .card-arrow { background: var(--color-primary); color: #fff; border-color: var(--color-primary); transform: translateX(2px); }
+
+  /* ---------- Filters / forms ---------- */
+  .filter-panel { @apply rounded-md border p-5; border-color: var(--color-border); background: var(--surface-1); }
+  .filter-panel-head { @apply flex items-center justify-between border-b pb-4; border-color: var(--color-border); }
+  .filter-clear { @apply inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[.06em] transition-colors; color: var(--color-text-secondary); transition-duration: var(--duration-fast); }
+  .filter-clear:hover { color: var(--color-error); }
+  .filter-block { @apply border-b pb-6 pt-6; border-color: var(--color-border); }
+  .filter-block:last-child { border-bottom:0; padding-bottom:0; }
+  .filter-options { @apply space-y-1; }
+  .filter-option { @apply flex w-full items-center gap-2.5 rounded py-1.5 text-left text-sm transition-colors; color: var(--color-text-secondary); transition-duration: var(--duration-fast); }
+  .filter-option:hover, .filter-option--active { color: var(--color-text-primary); }
+  .filter-dot { @apply h-2 w-2 rounded-full border; border-color: var(--color-text-tertiary); }
+  .filter-option--active .filter-dot { background: var(--color-primary); border-color: var(--color-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent); }
+  .search-input-wrap, .price-input-wrap { @apply flex items-center gap-2 rounded-md border px-3; border-color: var(--color-border); background: var(--surface-1); transition: border-color var(--duration-fast) var(--ease-standard); }
+  .search-input-wrap:focus-within, .price-input-wrap:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent); }
+  .search-input-wrap > svg, .price-input-wrap > span { color: var(--color-text-tertiary); }
+  .search-input { @apply w-full border-0 bg-transparent py-3 text-sm outline-none; font-family: var(--font-inter); color: var(--color-text-primary); }
+
+  .input { @apply w-full rounded-md border px-3.5 py-3 text-base outline-none transition-all; border-color: var(--color-border); background: var(--surface-1); color: var(--color-text-primary); transition-duration: var(--duration-fast); }
+  .input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent); }
+
+  /* ---------- Detail / checkout ---------- */
+  .detail-hero { @apply border-b pb-10; border-color: var(--color-border); }
+  .detail-index { @apply font-mono text-xs uppercase tracking-[.08em]; color: var(--color-text-secondary); }
+  .detail-stat { @apply border-l pl-4; border-color: var(--color-border); }
+  .story-block { @apply border-t pt-8; border-color: var(--color-border); }
+  .story-title { @apply mb-4 font-display text-h5 font-semibold; color: var(--color-text-primary); }
+  .lesson-block { @apply rounded-md border p-6; border-color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 10%, transparent); }
+  .buy-panel { @apply rounded-lg border shadow-dialog; border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+  .buy-panel .field-label { color: rgba(255,255,255,.7); }
+  .buy-panel .btn-primary { background: #fff; color: var(--color-primary); }
+  .buy-panel .btn-primary:hover { background: #F1F5F9; }
+
+  /* ---------- Stepper (seller wizard) ---------- */
+  .stepper { @apply grid gap-1; }
+  .step-item { @apply flex items-center gap-3 rounded-md px-3 py-3 text-left transition-colors; border: 1px solid transparent; color: var(--color-text-secondary); transition-duration: var(--duration-fast); }
+  .step-item--active { border-color: var(--color-primary); background: var(--surface-1); color: var(--color-text-primary); }
+  .step-number { @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full border font-mono text-[11px]; border-color: var(--color-border); }
+  .step-item--active .step-number { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+
+  /* ---------- Reading content ---------- */
+  .prose-post-mortem { @apply max-w-2xl; }
+  .prose-post-mortem p { @apply mb-4 text-[17px] leading-8; color: var(--color-text-secondary); }
+  .prose-post-mortem strong { color: var(--color-text-primary); }
+
+  /* ---------- Global search / command palette ---------- */
+  .cmdk-overlay { @apply fixed inset-0 flex items-start justify-center px-4 pt-[12vh]; z-index: var(--z-modal); background: rgba(15,23,42,.5); backdrop-filter: blur(2px); }
+  .cmdk-panel { @apply w-full max-w-xl overflow-hidden rounded-lg border shadow-dialog; border-color: var(--color-border); background: var(--surface-1); }
+  .cmdk-input-row { @apply flex items-center gap-3 border-b px-4; border-color: var(--color-border); }
+  .cmdk-input { @apply h-14 w-full border-0 bg-transparent text-base outline-none; color: var(--color-text-primary); }
+  .cmdk-kbd { @apply rounded border px-1.5 py-0.5 font-mono text-[10px]; border-color: var(--color-border); color: var(--color-text-tertiary); }
+  .cmdk-list { @apply max-h-[60vh] overflow-y-auto p-2; }
+  .cmdk-section-label { @apply px-3 pb-1 pt-3 font-mono text-[10px] uppercase tracking-[.08em]; color: var(--color-text-tertiary); }
+  .cmdk-item { @apply flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors; color: var(--color-text-primary); }
+  .cmdk-item:hover, .cmdk-item--active { background: var(--surface-2); }
+  .cmdk-item-icon { @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-md border; border-color: var(--color-border); color: var(--color-text-secondary); }
+  .cmdk-empty { @apply px-4 py-10 text-center text-sm; color: var(--color-text-secondary); }
+
+  /* ---------- Loading ---------- */
+  .spinner { @apply inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent align-[-3px] opacity-70; }
+
+  /* ---------- Mobile nav ---------- */
+  .mobile-nav-panel { @apply grid gap-1 border-t px-5 py-3 md:hidden; border-color: var(--color-border); background: var(--surface-1); }
+  .mobile-nav-link { @apply flex items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium transition-colors; color: var(--color-text-primary); transition-duration: var(--duration-fast); }
+  .mobile-nav-link:hover { background: var(--surface-2); }
+  .mobile-nav-toggle { @apply flex h-9 w-9 items-center justify-center rounded-md border transition-colors md:hidden; border-color: var(--color-border); color: var(--color-text-secondary); transition-duration: var(--duration-fast); }
+  .mobile-nav-toggle:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+  /* ---------- Theme toggle ---------- */
+  .theme-toggle {
+    @apply flex h-9 w-9 items-center justify-center rounded-md border transition-colors;
+    border-color: var(--color-border); color: var(--color-text-secondary);
+    transition-duration: var(--duration-fast);
+  }
+  .theme-toggle:hover { border-color: var(--color-primary); color: var(--color-primary); }
+}

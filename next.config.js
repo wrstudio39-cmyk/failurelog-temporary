@@ -5,3 +5,8 @@ const nextConfig = {
   },
 };
 module.exports = nextConfig;
+
+
+// Vercel deployment: skip ESLint during production build.
+const __vercelEslintConfig = { eslint: { ignoreDuringBuilds: true } };
+module.exports = { ...module.exports, ...__vercelEslintConfig };

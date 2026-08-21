@@ -96,7 +96,6 @@ export default function DashboardPage() {
   const fees = payouts.reduce((a, x) => a + Number(x.platform_fee || 0), 0);
   const net = Math.max(0, gross - fees);
   const pendingPayout = payouts.filter(x => x.status !== "paid").reduce((a, x) => a + Number(x.amount || 0), 0);
-  const completedSales = sales.filter(x => x.status === "completed");
   const chart = useMemo(() => {
     const buckets = Array.from({ length: 12 }, () => 0);
     const now = Date.now();

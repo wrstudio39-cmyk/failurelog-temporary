@@ -4,7 +4,7 @@ export async function POST(req:Request){
  const supabase=createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
  const {offerId,action,amount,message}=await req.json().catch(()=>({})); const {data:offer}=await supabase.from("offers").select("*").eq("id",offerId).single(); if(!offer)return NextResponse.json({error:"Offer not found"},{status:404});
  if(offer.buyer_id!==user.id&&offer.seller_id!==user.id)return NextResponse.json({error:"Forbidden"},{status:403});
- let update:Record<string,unknown>={updated_at:new Date().toISOString()};
+ const update:Record<string,unknown>={updated_at:new Date().toISOString()};
  if(action==="accept"&&offer.seller_id===user.id) update.status="accepted";
  else if(action==="decline"&&offer.seller_id===user.id) update.status="declined";
  else if(action==="withdraw"&&offer.buyer_id===user.id) update.status="withdrawn";

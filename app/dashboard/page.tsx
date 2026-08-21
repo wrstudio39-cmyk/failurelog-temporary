@@ -100,7 +100,7 @@ export default function DashboardPage() {
   const chart = useMemo(() => {
     const buckets = Array.from({ length: 12 }, () => 0);
     const now = Date.now();
-    completedSales.forEach((sale) => {
+    sales.filter(x => x.status === "completed").forEach((sale) => {
       const age = Math.max(0, Math.min(11, Math.floor((now - new Date(sale.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30))));
       buckets[11 - age] += Number(sale.amount || 0);
     });
@@ -280,7 +280,7 @@ function BuyerDashboard({ purchases, offers, loading }: { purchases: Purchase[];
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
         <section className="doc-card overflow-hidden">
           <div className="flex items-center justify-between border-b border-hairline p-5">
-            <div><div className="field-label">Your library</div><h2 className="mt-1 font-display text-xl font-bold">Projects you've acquired</h2></div>
+            <div><div className="field-label">Your library</div><h2 className="mt-1 font-display text-xl font-bold">Projects you&apos;ve acquired</h2></div>
             <Link href="/marketplace" className="btn-ghost"><Search size={14} /> Find more</Link>
           </div>
           {purchases.length ? (
@@ -308,7 +308,7 @@ function BuyerDashboard({ purchases, offers, loading }: { purchases: Purchase[];
 
         <section className="doc-card overflow-hidden">
           <div className="flex items-center justify-between border-b border-hairline p-5">
-            <div><div className="field-label">Deal desk</div><h2 className="mt-1 font-display text-xl font-bold">Offers you've sent</h2></div>
+            <div><div className="field-label">Deal desk</div><h2 className="mt-1 font-display text-xl font-bold">Offers you&apos;ve sent</h2></div>
             <Link href="/offers" className="btn-ghost px-0"><MessageSquare size={14} /></Link>
           </div>
           {offers.length ? (
